@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "90043983853",
+    "project_id": "expensetraker-d2cad",
+    "storage_bucket": "expensetraker-d2cad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:90043983853:android:1fce3c13aaeadc5aed29e4",
+        "android_client_info": {
+          "package_name": "com.trakerexpenses.gastos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzfYGZaVsWhSzBGX7u1Emv6uWyHZhxmho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
