@@ -41,6 +41,7 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   double _totalExpenses = 0.0;
   double _salary = 0.0;
+  bool _isEditingSalary = false; // Estado para controlar la visibilidad
   String? _selectedCategory;
   final TextEditingController _expenseController = TextEditingController();
   final TextEditingController _salaryController = TextEditingController();
@@ -225,6 +226,45 @@ class _DashboardState extends State<Dashboard> {
     _saveUserData();
   }
 
+  void _showUpdateSalaryDialog() {
+    // Limpiar el controlador antes de abrir el diálogo
+    _salaryController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Actualizar Sueldo'),
+          content: TextField(
+            controller: _salaryController,
+            decoration: const InputDecoration(
+              labelText: 'Nuevo sueldo',
+              border: OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.number,
+            inputFormatters: [ThousandsSeparatorInputFormatter()],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _updateSalary(); // Llama al método para actualizar el sueldo
+                Navigator.of(context)
+                    .pop(); // Cierra el diálogo después de guardar
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -235,7 +275,7 @@ class _DashboardState extends State<Dashboard> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              // Navegar a la pantalla de login (cambia 'LoginScreen' por tu pantalla de login)
+              // Navegar a la pantalla de login
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -250,15 +290,13 @@ class _DashboardState extends State<Dashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildFinancialSummary(),
+              _buildFinancialSummary(), // Resumen financiero (con botón de actualizar sueldo)
               const SizedBox(height: 20),
-              _buildSalaryUpdateSection(),
+              _buildExpenseInputSection(), // Sección para agregar gastos
               const SizedBox(height: 20),
-              _buildExpenseInputSection(),
+              _buildExpenseChart(), // Gráfico de gastos
               const SizedBox(height: 20),
-              _buildExpenseChart(),
-              const SizedBox(height: 20),
-              _buildExpenseList(),
+              _buildExpenseList(), // Lista de gastos
             ],
           ),
         ),
@@ -282,8 +320,17 @@ class _DashboardState extends State<Dashboard> {
             const SizedBox(height: 10),
             _buildSummaryItem('Sueldo', _salary),
             _buildSummaryItem('Total de Gastos', _totalExpenses),
-            _buildSummaryItem(
-                'Balance Disponible', availableBalance), // Mostrar el balance
+            _buildSummaryItem('Balance Disponible', availableBalance),
+            const SizedBox(height: 20),
+            Center(
+              // Centra el botón
+              child: ElevatedButton(
+                onPressed: () {
+                  _showUpdateSalaryDialog(); // Abre el diálogo para actualizar el sueldo
+                },
+                child: const Text('Actualizar Sueldo'),
+              ),
+            ),
           ],
         ),
       ),
@@ -302,39 +349,6 @@ class _DashboardState extends State<Dashboard> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSalaryUpdateSection() {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Actualizar Sueldo',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _salaryController,
-              decoration: const InputDecoration(
-                labelText: 'Nuevo sueldo',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [ThousandsSeparatorInputFormatter()],
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _updateSalary,
-              child: const Text('Actualizar'),
-            ),
-          ],
-        ),
       ),
     );
   }
