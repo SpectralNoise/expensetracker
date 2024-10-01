@@ -1,38 +1,20 @@
-import 'package:expense_tracker/screens/login.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dashboard',
-      theme: ThemeData.light(), // Tema claro si lo necesitas
-      darkTheme: ThemeData.dark(), // Tema oscuro
-      themeMode: ThemeMode.dark, // Usar siempre el tema oscuro
-      home: Dashboard(
-        toggleTheme: () {},
-        isDarkTheme: true,
-      ),
-    );
-  }
-}
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'login.dart';
 
 class Dashboard extends StatefulWidget {
-  const Dashboard(
-      {super.key,
-      required Null Function() toggleTheme,
-      required bool isDarkTheme});
+  final Function toggleTheme;
+  final bool isDarkTheme;
+
+  const Dashboard({
+    Key? key,
+    required this.toggleTheme,
+    required this.isDarkTheme,
+  }) : super(key: key);
 
   @override
   _DashboardState createState() => _DashboardState();
@@ -41,10 +23,11 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   double _totalExpenses = 0.0;
   double _salary = 0.0;
-  bool _isEditingSalary = false; // Estado para controlar la visibilidad
   String? _selectedCategory;
   final TextEditingController _expenseController = TextEditingController();
   final TextEditingController _salaryController = TextEditingController();
+  final TextEditingController _customCategoryController =
+      TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final List<String> _categories = [
@@ -54,17 +37,10 @@ class _DashboardState extends State<Dashboard> {
     'Transporte',
     'Deudas',
     'Otros',
+    'Personalizado',
   ];
 
   final List<Map<String, dynamic>> _expenses = [];
-
-  String formatCurrency(double amount) {
-    return NumberFormat.currency(
-      locale: 'es_CO',
-      symbol: '\$',
-      decimalDigits: 0,
-    ).format(amount);
-  }
 
   @override
   void initState() {
@@ -81,10 +57,9 @@ class _DashboardState extends State<Dashboard> {
 
     if (userDoc.exists) {
       setState(() {
-        _salary = userDoc.data()?['salary'] ?? 0.0; // Manejo de nulos
-        // Asegúrate de que el sueldo no sea negativo al cargarlo
+        _salary = userDoc.data()?['salary'] ?? 0.0;
         if (_salary < 0) {
-          _salary = 0; // Ajustar el sueldo a 0 si se vuelve negativo
+          _salary = 0;
         }
       });
     }
@@ -113,7 +88,6 @@ class _DashboardState extends State<Dashboard> {
 
         _totalExpenses += value;
       }
-      // No restar los gastos del sueldo aquí
     });
   }
 
@@ -168,7 +142,17 @@ class _DashboardState extends State<Dashboard> {
       return;
     }
 
-    final String category = _selectedCategory!;
+    String category = _selectedCategory!;
+    if (category == 'Personalizado') {
+      if (_customCategoryController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Debes ingresar una categoría personalizada')),
+        );
+        return;
+      }
+      category = _customCategoryController.text;
+    }
 
     setState(() {
       _expenses.add({
@@ -177,13 +161,12 @@ class _DashboardState extends State<Dashboard> {
       });
       _totalExpenses += expenseValue;
 
-      // Asegúrate de que el sueldo no sea negativo
       if (_salary < 0) {
-        _salary = 0; // Ajustar el sueldo a 0 si se vuelve negativo
+        _salary = 0;
       }
 
-      // Limpiar el controlador de gastos
       _expenseController.clear();
+      _customCategoryController.clear();
     });
 
     await _firestore
@@ -204,7 +187,6 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Future<void> _deleteExpense(String expenseId, double expenseValue) async {
-    // Eliminar el gasto de Firestore
     await _firestore
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser?.uid)
@@ -212,22 +194,16 @@ class _DashboardState extends State<Dashboard> {
         .doc(expenseId)
         .delete();
 
-    // Actualizar el estado local
     setState(() {
-      _totalExpenses -= expenseValue; // Restar del total de gastos
-      // Aquí no debes sumar al sueldo, ya que eso es incorrecto
-      _expenses.removeWhere((expense) =>
-          expense['id'] == expenseId); // Eliminar de la lista local
+      _totalExpenses -= expenseValue;
+      _expenses.removeWhere((expense) => expense['id'] == expenseId);
     });
 
-    // Cargar nuevamente los gastos para asegurarte de que todo esté actualizado
     _loadExpenses();
-    // Guardar los datos después de eliminar
     _saveUserData();
   }
 
   void _showUpdateSalaryDialog() {
-    // Limpiar el controlador antes de abrir el diálogo
     _salaryController.clear();
 
     showDialog(
@@ -247,15 +223,14 @@ class _DashboardState extends State<Dashboard> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
+                Navigator.of(context).pop();
               },
               child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
-                _updateSalary(); // Llama al método para actualizar el sueldo
-                Navigator.of(context)
-                    .pop(); // Cierra el diálogo después de guardar
+                _updateSalary();
+                Navigator.of(context).pop();
               },
               child: const Text('Guardar'),
             ),
@@ -272,13 +247,20 @@ class _DashboardState extends State<Dashboard> {
         title: const Text('Dashboard'),
         actions: [
           IconButton(
+            icon: Icon(widget.isDarkTheme ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () => widget.toggleTheme(),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              // Navegar a la pantalla de login
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
+                MaterialPageRoute(
+                    builder: (context) => LoginScreen(
+                          toggleTheme: widget.toggleTheme,
+                          isDarkTheme: widget.isDarkTheme,
+                        )),
               );
             },
           ),
@@ -290,13 +272,13 @@ class _DashboardState extends State<Dashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildFinancialSummary(), // Resumen financiero (con botón de actualizar sueldo)
+              _buildFinancialSummary(),
               const SizedBox(height: 20),
-              _buildExpenseInputSection(), // Sección para agregar gastos
+              _buildExpenseInputSection(),
               const SizedBox(height: 20),
-              _buildExpenseChart(), // Gráfico de gastos
+              _buildExpenseChart(),
               const SizedBox(height: 20),
-              _buildExpenseList(), // Lista de gastos
+              _buildExpenseList(),
             ],
           ),
         ),
@@ -323,10 +305,9 @@ class _DashboardState extends State<Dashboard> {
             _buildSummaryItem('Balance Disponible', availableBalance),
             const SizedBox(height: 20),
             Center(
-              // Centra el botón
               child: ElevatedButton(
                 onPressed: () {
-                  _showUpdateSalaryDialog(); // Abre el diálogo para actualizar el sueldo
+                  _showUpdateSalaryDialog();
                 },
                 child: const Text('Actualizar Sueldo'),
               ),
@@ -385,6 +366,15 @@ class _DashboardState extends State<Dashboard> {
               }).toList(),
             ),
             const SizedBox(height: 10),
+            if (_selectedCategory == 'Personalizado')
+              TextField(
+                controller: _customCategoryController,
+                decoration: const InputDecoration(
+                  labelText: 'Categoría personalizada',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            const SizedBox(height: 10),
             TextField(
               controller: _expenseController,
               decoration: const InputDecoration(
@@ -419,12 +409,73 @@ class _DashboardState extends State<Dashboard> {
             ),
             const SizedBox(height: 10),
             SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: _getExpenseChartSections(),
-                  sectionsSpace: 0,
-                  centerSpaceRadius: 40,
+              height: 300,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: _getMaxExpenseValue(),
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      tooltipPadding: const EdgeInsets.all(8.0),
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        return BarTooltipItem(
+                          '${_getCategoryName(group.x.toInt())}\n${formatCurrency(rod.toY)}',
+                          const TextStyle(color: Colors.white),
+                        );
+                      },
+                    ),
+                  ),
+                  titlesData: FlTitlesData(
+                    show: true,
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          if (value < 0 ||
+                              value >= _getUniqueCategories().length) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              _getCategoryName(value.toInt()),
+                              style: TextStyle(
+                                color: widget.isDarkTheme
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 60,
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            formatCurrency(value),
+                            style: TextStyle(
+                              color: widget.isDarkTheme
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontSize: 10,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    topTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  gridData: FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                  barGroups: _getExpenseBarGroups(),
                 ),
               ),
             ),
@@ -434,7 +485,21 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  List<PieChartSectionData> _getExpenseChartSections() {
+  List<String> _getUniqueCategories() {
+    Set<String> uniqueCategories =
+        Set<String>.from(_expenses.map((e) => e['category'] as String));
+    return uniqueCategories.toList();
+  }
+
+  String _getCategoryName(int index) {
+    List<String> uniqueCategories = _getUniqueCategories();
+    if (index >= 0 && index < uniqueCategories.length) {
+      return uniqueCategories[index];
+    }
+    return '';
+  }
+
+  List<BarChartGroupData> _getExpenseBarGroups() {
     Map<String, double> categoryTotals = {};
     for (var expense in _expenses) {
       categoryTotals[expense['category']] =
@@ -448,22 +513,37 @@ class _DashboardState extends State<Dashboard> {
       Colors.yellow,
       Colors.purple,
       Colors.orange,
+      Colors.pink,
     ];
 
-    return categoryTotals.entries.map((entry) {
-      int colorIndex = _categories.indexOf(entry.key) % colors.length;
-      return PieChartSectionData(
-        color: colors[colorIndex],
-        value: entry.value,
-        title: '${entry.key}\n${formatCurrency(entry.value)}',
-        radius: 50,
-        titleStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+    List<String> uniqueCategories = _getUniqueCategories();
+
+    return List.generate(uniqueCategories.length, (index) {
+      final category = uniqueCategories[index];
+      final value = categoryTotals[category] ?? 0.0;
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: value,
+            color: colors[index % colors.length],
+            width: 20,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(6),
+              topRight: Radius.circular(6),
+            ),
+          ),
+        ],
       );
-    }).toList();
+    });
+  }
+
+  double _getMaxExpenseValue() {
+    if (_expenses.isEmpty) return 100;
+    return _expenses
+            .map((e) => e['value'] as double)
+            .reduce((a, b) => a > b ? a : b) *
+        1.2;
   }
 
   Widget _buildExpenseList() {
@@ -501,6 +581,14 @@ class _DashboardState extends State<Dashboard> {
         ),
       ),
     );
+  }
+
+  String formatCurrency(double amount) {
+    return NumberFormat.currency(
+      locale: 'es_CO',
+      symbol: '\$',
+      decimalDigits: 0,
+    ).format(amount);
   }
 }
 

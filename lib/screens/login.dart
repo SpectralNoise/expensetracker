@@ -9,8 +9,11 @@ class LoginScreen extends StatelessWidget {
     clientId:
         '90043983853-68ntr6s5vm3kk8fhbs0n0j0pvb6uru5s.apps.googleusercontent.com',
   );
+  final Function toggleTheme;
+  final bool isDarkTheme;
 
-  LoginScreen({super.key});
+  LoginScreen({Key? key, required this.toggleTheme, required this.isDarkTheme})
+      : super(key: key);
 
   Future<void> _signInWithGoogle(BuildContext context) async {
     try {
@@ -40,11 +43,9 @@ class LoginScreen extends StatelessWidget {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => Dashboard(
-              toggleTheme: () {
-                // Implement your toggle theme logic here
-              },
-              isDarkTheme: false, // Set the initial theme state
-            ), // Sin pasar salario
+              toggleTheme: toggleTheme,
+              isDarkTheme: isDarkTheme,
+            ),
           ),
         );
       } else {
@@ -60,13 +61,20 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor =
+        isDarkTheme ? Colors.blue.shade200 : Colors.blue.shade900;
+    final backgroundColor =
+        isDarkTheme ? Colors.grey.shade900 : Colors.blue.shade400;
+    final textColor = isDarkTheme ? Colors.white : Colors.white;
+    final secondaryTextColor = isDarkTheme ? Colors.white70 : Colors.white70;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.blue.shade400, Colors.blue.shade900],
+            colors: [backgroundColor, primaryColor],
           ),
         ),
         child: SafeArea(
@@ -77,26 +85,26 @@ class LoginScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.account_balance_wallet,
                       size: 100,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Bienvenido a ExpenseApp',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Inicia sesión para gestionar tus finanzas',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white70,
+                        color: secondaryTextColor,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -104,8 +112,10 @@ class LoginScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () => _signInWithGoogle(context),
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.black87,
-                        backgroundColor: Colors.white,
+                        foregroundColor:
+                            isDarkTheme ? Colors.white : Colors.black87,
+                        backgroundColor:
+                            isDarkTheme ? Colors.grey.shade800 : Colors.white,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4),
@@ -124,11 +134,13 @@ class LoginScreen extends StatelessWidget {
                               fit: BoxFit.contain,
                             ),
                             const SizedBox(width: 12),
-                            const Text(
+                            Text(
                               'Iniciar sesión con Google',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
+                                color:
+                                    isDarkTheme ? Colors.white : Colors.black87,
                               ),
                             ),
                           ],
@@ -136,9 +148,9 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Al iniciar sesión, aceptas nuestros Términos de Servicio y Política de Privacidad',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      style: TextStyle(color: secondaryTextColor, fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
                   ],
