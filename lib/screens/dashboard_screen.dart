@@ -11,10 +11,10 @@ class Dashboard extends StatefulWidget {
   final bool isDarkTheme;
 
   const Dashboard({
-    Key? key,
+    super.key,
     required this.toggleTheme,
     required this.isDarkTheme,
-  }) : super(key: key);
+  });
 
   @override
   _DashboardState createState() => _DashboardState();
@@ -469,11 +469,11 @@ class _DashboardState extends State<Dashboard> {
                       ),
                     ),
                     topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
-                  gridData: FlGridData(show: false),
+                  gridData: const FlGridData(show: false),
                   borderData: FlBorderData(show: false),
                   barGroups: _getExpenseBarGroups(),
                 ),

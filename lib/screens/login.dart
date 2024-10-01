@@ -12,8 +12,8 @@ class LoginScreen extends StatelessWidget {
   final Function toggleTheme;
   final bool isDarkTheme;
 
-  LoginScreen({Key? key, required this.toggleTheme, required this.isDarkTheme})
-      : super(key: key);
+  LoginScreen(
+      {super.key, required this.toggleTheme, required this.isDarkTheme});
 
   Future<void> _signInWithGoogle(BuildContext context) async {
     try {
