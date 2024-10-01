@@ -1,1 +1,49 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"expensetraker-d2cad","appId":"1:90043983853:android:1fce3c13aaeadc5aed29e4","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"expensetraker-d2cad","appId":"1:90043983853:ios:e8d1d604b817d948ed29e4","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"expensetraker-d2cad","appId":"1:90043983853:ios:e8d1d604b817d948ed29e4","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"expensetraker-d2cad","configurations":{"android":"1:90043983853:android:1fce3c13aaeadc5aed29e4","ios":"1:90043983853:ios:e8d1d604b817d948ed29e4","macos":"1:90043983853:ios:e8d1d604b817d948ed29e4","web":"1:90043983853:web:dc34ad92875f9ae1ed29e4","windows":"1:90043983853:web:df3eb6a2e6b609aeed29e4"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "expensetraker-d2cad",
+          "appId": "1:90043983853:android:1fce3c13aaeadc5aed29e4",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "expensetraker-d2cad",
+          "appId": "1:90043983853:ios:e8d1d604b817d948ed29e4",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "expensetraker-d2cad",
+          "appId": "1:90043983853:ios:e8d1d604b817d948ed29e4",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "expensetraker-d2cad",
+          "configurations": {
+            "android": "1:90043983853:android:1fce3c13aaeadc5aed29e4",
+            "ios": "1:90043983853:ios:e8d1d604b817d948ed29e4",
+            "macos": "1:90043983853:ios:e8d1d604b817d948ed29e4",
+            "web": "1:90043983853:web:dc34ad92875f9ae1ed29e4",
+            "windows": "1:90043983853:web:df3eb6a2e6b609aeed29e4"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
